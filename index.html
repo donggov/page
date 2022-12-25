@@ -1,0 +1,139 @@
+<!-- 참고 : https://web.dev/i18n/ko/drag-and-drop -->
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+
+    <title>단어 퍼즐2</title>
+
+    <!-- Draggable only -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@shopify/draggable@1.0.0-beta.8/lib/draggable.js"></script> -->
+    <!-- Swappable only -->
+    <script src="https://cdn.jsdelivr.net/npm/@shopify/draggable@1.0.0-beta.8/lib/swappable.js"></script>
+
+    <style>
+      :root {
+        --card-size: 30px;
+        --size: 8;
+      }
+
+      /* @media (max-width: 800px) {
+        .container {
+          max-width: 500px;
+        }
+      } */
+
+      .container .grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-gap: 5px;
+      }
+
+      .container .card {
+        aspect-ratio: 1;
+        background-color: wheat;
+        border-radius: 0.5em;
+        outline: 3px solid #666;
+        outline-offset: -3px;
+      }
+
+      .card.letter {
+        text-align: center;
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+        font-weight: bold;
+      }
+
+      .card-over {
+        outline: 3px dotted #666 !important;
+        outline-offset: -3px !important;
+        /* background-color: aqua !important; */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="grid"></div>
+    </div>
+
+    <script>
+      const SIZE = 8;
+      const ANSWERS = ["BOOK", "OPINION"];
+      const LETTERS = ["B", "O", "O", "K", "P", "I", "N", "I", "O", "N"];
+      const CARDS = Array.from({ length: SIZE * SIZE }, (_, i) => LETTERS[i] || "");
+
+      document.querySelector(".container .grid").innerHTML = CARDS.map(
+        (o, i) => `<div class="card letter"></div>`
+      ).join("");
+
+      const shuffle = () => {
+        const arr = CARDS;
+        for (let i = arr.length - 1; i > 0; i--) {
+          let j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+
+        document.querySelectorAll(".container .card").forEach(function (item, index) {
+          item.innerHTML = CARDS[index];
+        });
+      };
+      shuffle();
+
+      const checkAnswer = async () => {
+        await setTimeout(() => {}, 300);
+
+        const box = document.querySelectorAll(".card");
+        const x = [];
+        const y = [];
+
+        for (let i = 0; i < SIZE; i++) {
+          for (let j = 0; j < SIZE; j++) {
+            x.push(box[i * SIZE + j]?.innerHTML || "_"); // 가로
+            y.push(box[i + j * SIZE]?.innerHTML || "_"); // 세로
+          }
+          x.push("_");
+          y.push("_");
+        }
+        const parse = (arr) =>
+          arr
+            .join("")
+            .match(/[a-zA-Z]+/g)
+            .filter((o) => o.length > 1);
+        console.log("x", parse(x));
+        console.log("y", parse(y));
+        console.log("a", [...parse(x), ...parse(y)].sort());
+
+        return JSON.stringify([...parse(x), ...parse(y)].sort()) === JSON.stringify(ANSWERS.sort());
+      };
+
+      document.addEventListener("DOMContentLoaded", (event) => {
+        const width = document.querySelectorAll(".card")[0].offsetWidth;
+        document.querySelectorAll(".card").forEach((o) => (o.style.width = width));
+
+        const containerSelector = ".container .grid";
+        const containers = document.querySelectorAll(containerSelector);
+
+        const swappable = new Swappable.default(containers, {
+          draggable: ".card",
+          delay: 50,
+          classes: {
+            "draggable:over": ["card-over"],
+          },
+        });
+
+        swappable.on("swappable:start", () => console.log("swappable:start"));
+        swappable.on("swappable:swap", () => console.log("swappable:swap"));
+        swappable.on("swappable:swapped", () => console.log("swappable:swapped"));
+        swappable.on("swappable:stop", () => {
+          checkAnswer().then((isAnswer) => {
+            if (isAnswer) {
+              alert("Finish");
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
