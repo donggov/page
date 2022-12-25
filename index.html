@@ -6,6 +6,9 @@
 
     <title>단어 퍼즐2</title>
 
+    <!-- latest -->
+    <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+
     <!-- Draggable only -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/@shopify/draggable@1.0.0-beta.8/lib/draggable.js"></script> -->
     <!-- Swappable only -->
@@ -23,10 +26,14 @@
         }
       } */
 
+      .container {
+        margin: 5px;
+      }
+
       .container .grid {
         display: grid;
         grid-template-columns: repeat(8, 1fr);
-        grid-gap: 5px;
+        grid-gap: 2px;
       }
 
       .container .card {
@@ -43,6 +50,8 @@
         display: flex;
         flex-direction: column;
         font-weight: bold;
+        font-size: 1rem;
+        font-weight: 700;
       }
 
       .card-over {
@@ -50,12 +59,35 @@
         outline-offset: -3px !important;
         /* background-color: aqua !important; */
       }
+
+      .card.draggable-mirror {
+        color: #fff;
+        background-color: #0042ff;
+        border-color: #0042ff;
+      }
+
+      .nes-btn {
+        border-image-repeat: inherit;
+      }
     </style>
   </head>
 
   <body>
     <div class="container">
       <div class="grid"></div>
+
+      <!-- Dialog -->
+      <section>
+        <dialog class="nes-dialog" id="dialog-default">
+          <form method="dialog">
+            <p class="title">Success!</p>
+            <menu class="dialog-menu">
+              <!-- <button class="nes-btn">Cancel</button> -->
+              <button class="nes-btn is-primary">Next</button>
+            </menu>
+          </form>
+        </dialog>
+      </section>
     </div>
 
     <script>
@@ -77,6 +109,7 @@
 
         document.querySelectorAll(".container .card").forEach(function (item, index) {
           item.innerHTML = CARDS[index];
+          // CARDS[index] ? item.classList.add("letter") : item.classList.remove("letter");
         });
       };
       shuffle();
@@ -101,9 +134,6 @@
             .join("")
             .match(/[a-zA-Z]+/g)
             .filter((o) => o.length > 1);
-        console.log("x", parse(x));
-        console.log("y", parse(y));
-        console.log("a", [...parse(x), ...parse(y)].sort());
 
         return JSON.stringify([...parse(x), ...parse(y)].sort()) === JSON.stringify(ANSWERS.sort());
       };
@@ -123,13 +153,13 @@
           },
         });
 
-        swappable.on("swappable:start", () => console.log("swappable:start"));
-        swappable.on("swappable:swap", () => console.log("swappable:swap"));
-        swappable.on("swappable:swapped", () => console.log("swappable:swapped"));
+        // swappable.on("swappable:start", () => {});
+        // swappable.on("swappable:swap", () => {});
+        // swappable.on("swappable:swapped", () => {});
         swappable.on("swappable:stop", () => {
           checkAnswer().then((isAnswer) => {
             if (isAnswer) {
-              alert("Finish");
+              document.getElementById("dialog-default").showModal();
             }
           });
         });
